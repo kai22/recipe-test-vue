@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/recipes.css">
+
+    <title>Recipes.com</title>
+  </head>
+  <body>
+
+    <header class="bg-dark">
+
+            <section class="container">
+                <div class="row">
+                    
+                    <div class="col col-md-3 mt-3">
+                       Recipes.com
+                    </div>
+
+                    <div class="d-none d-md-block col col-md-9 mt-3" style="text-align:right">
+                       <ul>
+                           <li class="ml-5">About</li>
+                           <li class="ml-5">Carrers</li>
+                           <li class="ml-5">Awards</li>
+                       </ul>
+
+                    </div>
+
+                    <div class="d-md-none col col-md-9 mt-3" style="text-align: right;">
+                        <div class="bi bi-three-dots"></div>
+                    </div>
+
+                </div>
+            </section>
+
+        </header>
+
+
+    <!--section class="container">
+        <h1 class="display-1"><i class="bi-alarm"></i>&nbsp;Hello, world!</h1>
+    </section-->
+
+   
+
+    <main id="wrapper">
+
+        <section class="container mt-5 mb-5" id="app">
+            
+            
+            <div  v-if="selrecipe == ''" class="d-flex flex-wrap justify-content-center">
+                <recipe-block  v-if="recipes" v-for="(recipe, index) in fullrecipes" v-bind:key="index" v-bind:recipe="recipe"></recipe-block>
+            </div>
+
+        
+
+            <div class="row justify-content-md-center" v-if="selrecipe !== ''">
+
+                <div class="col col-md-10">
+
+                    <div class="row mb-3">
+    
+                        <div v-on:click="atom.clearRecipe()" class="col col-md-6" style="cursor: pointer;"><span class="bi bi-arrow-left-circle-fill"></span> Go Back</div>
+                        
+                        <div v-on:click="atom.nextRecipe(selrecipe.uuid)" class="col col-md-6" style="cursor: pointer; text-align: right;">Next Recipe <span class="bi bi-arrow-right-circle-fill"></span></div>
+                        
+                    </div>
+                </div>
+            
+                <recipe-main v-bind:recipe="selrecipe"></recipe-main>
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+
+    <footer class="footer bg-dark">
+        
+        <section class="container">
+
+            <div class="row">
+
+                <div class="col col-md-4 mt-4">
+                   &copy2020
+                </div>
+                <div class="col col-md-4 mt-4">
+                   &nbsp;
+                </div>
+                <div class="col col-md-4 mt-4"  style="text-align: right;">
+                    <ul>
+                        <li class="bi bi-instagram ml-2"></li>
+                        <li class="bi bi-facebook ml-2"></li>
+                        <li class="bi bi-bootstrap ml-2"></li>
+                    </ul>
+                </div>
+            </div>
+
+        </section>
+
+    </footer>
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/es6-promise.auto.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/ramda.min.js"></script>
+    <script src="js/vue.min.js"></script>
+
+
+
+    <script type="text/JavaScript">
+
+        function ajaxSuccess(d){
+            console.log(d);
+        }
+
+        function ajaxError(XMLHttpRequest, textStatus, errorThrown){
+            console.log(`request: ${JSON.stringify(XMLHttpRequest)}`);
+            console.log(`status: ${textStatus}`);
+            console.log(`error: ${errorThrown}`);
+
+        }
+
+        function ajaxGet(url){
+
+            return  $.ajax({
+                type: "GET",
+                /*
+                crossDomain:true,
+                xhrFields: {
+                    withCredentials: true
+                },
+               */
+                url: url,
+                contentType:"application/json",
+                dataType: 'json',
+                success:ajaxSuccess,
+                error:ajaxError     
+            });
+        }
+
+        function findObj(arr,key,val){ // find an object in an array by key=value
+
+            return R.find(R.propEq(key, val))(arr);
+        }
+
+
+        function vComp(arr){
+
+            R.forEach(function(n){
+            
+                var y = R.filter(function(x){ return x.name == n}, vueComps)[0];
+
+                Vue.component(y.name, {
+                    props:y.props,
+                    template:vtemplates[y.html],
+                });
+
+            }, arr);
+        };
+    
+        let atom;
+
+        let vtemplates = {
+
+            recipeBlock: /* html */
+            `<div class="recipeBlock col-md-3 p-3" v-on:click="atom.selectRecipe(recipe.uuid)">
+                <div class="row">
+                    <div class="col col-md-6">
+                        <img v-bind:src="recipe.images.small" style="width:100%;height:auto"> 
+                    </div>
+
+                    <div class="col col-md-6">
+                        <strong>{{recipe.title}}</strong><br />
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col col-md-12">
+                        <i>{{recipe.description}}</i>
+                    </div>
+                </div>
+
+            </div>`,
+
+            recipeMain: /* html */
+            `<div class="recipeMain col-md-10">
+                    
+                <div class="row">
+                        <div class="col col-md-4">
+                            <img v-bind:src="recipe.images.medium" style="width:100%;height:auto"> 
+                        </div>
+
+                        <div class="col col-md-8">
+                            <h2>{{recipe.title}}</h2>
+                            
+                            <div class="desc"><strong>{{recipe.description}}</strong></div>
+                           
+                            <div class="row">
+                                <div class="col col-md-6">
+                                    Serves: {{recipe.servings}}
+                                </div>
+                                <div class="col col-md-6">
+                                    Cook Time: {{recipe.cookTime}} minutes
+                                </div>
+                            </div>
+
+                            <div class="prep">Allow {{recipe.prepTime}} minutes for preperation.</div>
+           
+                        </div>
+                </div>
+
+
+                <div class="row">
+                        <ingredient-list>
+                            <ingredient-item v-for="(item, index) in recipe.ingredients" v-bind:key="index" v-bind:item="item"></ingredient-item>
+                        </ingredient-list>
+
+                        <directions-block>
+                            <d-task v-for="(task, index) in recipe.directions" v-bind:key="index" v-bind:task="task"></d-task>
+                        </directions-block>
+                </div>
+            </div>`,
+
+            ingredientList:/* html */
+            `<div class="col col-md-4 pt-4">
+                <slot></slot>
+            </div>`,
+
+            ingredientItem:/* html */
+            `<div v-if="item.measurement" class="item mb-2">{{item.amount}} {{item.measurement}} {{item.name}}
+                <component v-if="item.special" v-bind:is="'spe-'+item.special.type" v-bind:special="item.special"></component></div>
+
+            <div v-else class="item mb-2">{{item.amount}} {{item.name}}
+                <component v-if="item.special" v-bind:is="'spe-'+item.special.type" v-bind:special="item.special"></component></div>`,
+
+            spe_event:/* html */
+            `<div class="sevent">
+                <span><i class="bi bi-patch-exclamation-fill"></i> Special Event:</span> <strong>{{special.title}}</strong><br>
+                <i class="specialtext">{{special.text}}</i>
+            </div>`,
+            spe_promo:/* html */
+            `<div class="spromo">
+                <span><i class="bi bi-gift"></i> PROMO:</span> <strong>{{special.title}}</strong><br>
+                <i class="specialtext">{{special.text}}</i>
+            </div>`,
+            spe_sale:/* html */`
+            <div class="ssale">
+                <span><i class="bi bi-tags-fill"></i> SALE!:</span> <strong>{{special.title}}</strong><br>
+                <i class="specialtext">{{special.text}}</i>
+            </div>`,
+            spe_local:/* html */
+            `<div class="slocal">
+                <span><i class="bi bi-geo-alt-fill"></i> Local to You:</span> <strong>{{special.title}}</strong><br>
+                <i class="specialtext">{{special.text}}</i>
+            </div>`,
+
+            directionsBlock:/* html */
+            `<div class="col col-md-8">
+                <h5>Cooking Directions</h5>
+                <slot></slot>
+            </div>`,
+
+            task: /* html */
+            `<div v-if="task.optional" class="dtask"><strong>OPTIONAL: </strong>{{task.instructions}}</div>
+            <div v-else class="dtask">{{task.instructions}}</div>`,
+
+        }
+
+
+        let vueComps = [
+        
+        {
+            "name": 'recipe-block',
+            "props": ['recipe'],
+            "html": 'recipeBlock'
+        },
+        {
+            "name": 'recipe-main',
+            "props": ['recipe'],
+            "html": 'recipeMain'
+        },
+        {
+            "name": 'ingredient-list',
+            "props": [],
+            "html": 'ingredientList'
+        },
+        {
+            "name": 'ingredient-item',
+            "props": ['item'],
+            "html": 'ingredientItem'
+        },
+        {
+            "name": 'spe-event',
+            "props": ['special'],
+            "html": 'spe_event'
+        },
+        {
+            "name": 'spe-promo',
+            "props": ['special'],
+            "html": 'spe_promo'
+        },
+        {
+            "name": 'spe-sale',
+            "props": ['special'],
+            "html": 'spe_sale'
+        },
+        {
+            "name": 'spe-local',
+            "props": ['special'],
+            "html": 'spe_local'
+        },
+        {
+            "name": 'directions-block',
+            "props": [],
+            "html": 'directionsBlock'
+        },
+        {
+            "name": 'd-task',
+            "props": ['task'],
+            "html": 'task'
+        },
+
+    ]
+
+    //build the components before using creating the parent Vue instance
+    vComp([
+        "recipe-block",
+        "recipe-main",
+        "ingredient-list",
+        "ingredient-item",
+        "spe-event",
+        "spe-promo",
+        "spe-sale",
+        "spe-local",
+        "directions-block",
+        "d-task"
+    ]);
+
+
+    $(document).ready(function(){
+
+        atom = new Vue({
+
+            el:'#app',
+            data:{
+                recipes:[],
+                specials:[],
+                selrecipe:'',
+            },
+
+            mounted: function(){
+
+                let self = this;
+
+                Promise.all([
+                        ajaxGet('http://localhost:3001/recipes'),
+                        ajaxGet('http://localhost:3001/specials')
+                    ]).then(function(res){
+                        self.recipes = res[0];
+                        self.specials = res[1];
+                });
+            
+            },
+
+            computed:{
+                fullrecipes: function(){
+                    let self = this;
+
+                    return self.recipes
+                },
+                
+            },
+
+            methods: {
+
+                selectRecipe:function(uuid){
+                    let self = this;
+                    console.log(uuid);
+
+                    let obj = findObj(self.fullrecipes,'uuid',uuid);
+
+                    let appendSpecial = (n) => {
+                        let special = findObj(self.specials,'ingredientId',n.uuid);
+
+                        if(special){
+                            n.special = special;
+                        }
+
+                        return n;
+                    }
+
+                    R.map(appendSpecial, obj.ingredients);
+
+                    self.selrecipe = obj;
+                },
+
+                nextRecipe:function(uuid){
+                    let self = this;
+                    console.log(uuid);
+                    let index = R.findIndex(R.propEq('uuid', uuid))(self.fullrecipes);
+                    let uid = self.fullrecipes[index+1] ? self.fullrecipes[index+1].uuid : self.fullrecipes[0].uuid;
+                    self.selectRecipe(uid);
+                    
+                },
+
+                clearRecipe: function(){
+                    let self = this;
+                    self.selrecipe = '';
+                }
+
+            }
+
+        });
+
+    });
+
+
+      
+    </script>
+
+
+</body>
+</html>
